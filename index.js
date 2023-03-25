@@ -1,38 +1,38 @@
+const dotenv = require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
-const userRouter=require('./routes/user');
+const userRouter = require("./routes/user");
 const connectDb = require("./config/mongoose");
-
-
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT;
 
-connectDb()
+//connecting database
+connectDb();
+
 app.use(cors());
 app.use(express.json());
+
+//user api
 app.use("/api/users", userRouter);
 
-app.get("/", (req, res) => {
-  res.send("Welcome to Exploding kitten API Server!");
+app.all("*", (req, res) => {
+  res.status(404).send("404 NOT FOUND");
+});
+
+// enabling socket server // -------
+const socketServer = require("http").Server(app);
+const socket = require("./config/leaderBoardSocket").leaderboardSocket(
+  socketServer
+);
+
+socketServer.listen(4000, (err) => {
+  if (err) {
+    ("error in listening socket server");
+  } else {
+    console.log("socket server is running successfully on port : 4000");
+  }
 });
 
 app.listen(PORT, () => {
   console.log(`Exploding kitten API Server is running on ${PORT}`);
 });
-
-
-
-
-// app.all("*", (req, res) => {
-//   sendErrorProd(
-//     new AppError(`Can't find ${req.originalUrl} on this server!`, 404),
-//     res
-//   );
-// });
-
-// process.on("unhandledRejection", (err) => {
-//   console.log(err.name, err.message);
-//   console.log("UNHANDLED REJECTION! Shutting down...");
-//   process.exit(1);
-// });
